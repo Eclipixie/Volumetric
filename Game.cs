@@ -18,6 +18,8 @@ namespace Volumetric {
 
         int VertexBufferObject;
 
+        Shader shader;
+
         protected override void OnUpdateFrame(FrameEventArgs args) {
             base.OnUpdateFrame(args);
 
@@ -35,6 +37,8 @@ namespace Volumetric {
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
+
+            shader = new Shader("shader.vert", "shader.frag");
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
@@ -51,6 +55,12 @@ namespace Volumetric {
             base.OnFramebufferResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
+        }
+
+        protected override void OnUnload() {
+            base.OnUnload();
+
+            shader.Dispose();
         }
     }
 }
