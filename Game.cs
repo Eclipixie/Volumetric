@@ -17,6 +17,7 @@ namespace Volumetric {
         };
 
         int VertexBufferObject;
+        int VertexArrayObject;
 
         Shader shader;
 
@@ -33,12 +34,22 @@ namespace Volumetric {
 
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-            //Code goes here
+            // create VAO
+            VertexArrayObject = GL.GenVertexArray();
+            GL.BindVertexArray(VertexArrayObject);
+
+            // getting shaders
+            shader = new Shader("shader.vert", "shader.frag");
+
+            // buffers and bindings
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
             GL.BufferData(BufferTarget.ArrayBuffer, vertices.Length * sizeof(float), vertices, BufferUsageHint.StaticDraw);
 
-            shader = new Shader("shader.vert", "shader.frag");
+            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
+            GL.EnableVertexAttribArray(0);
+
+            shader.Use();
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
@@ -46,7 +57,9 @@ namespace Volumetric {
 
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
-            //Code goes here.
+            shader.Use();
+            GL.BindVertexArray(VertexArrayObject);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
 
             SwapBuffers();
         }
