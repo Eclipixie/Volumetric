@@ -63,6 +63,11 @@ namespace Volumetric {
             GL.UseProgram(Handle);
         }
 
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
         protected virtual void Dispose(bool disposing) {
             if (!disposedValue) {
                 GL.DeleteProgram(Handle);
@@ -74,11 +79,6 @@ namespace Volumetric {
             if (!disposedValue) {
                 Console.WriteLine("GPU Resource leak! Did you forget to call Dispose()?");
             }
-        }
-
-        public void Dispose() {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }

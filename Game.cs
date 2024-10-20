@@ -5,11 +5,6 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace Volumetric {
     public class Game : GameWindow {
-        public Game(int width, int height, string title) : 
-            base(GameWindowSettings.Default, new NativeWindowSettings() { 
-                ClientSize = (width, height), Title = title 
-            }) { }
-
         readonly float[] vertices = {
             -0.5f, -0.5f, 0.0f, //Bottom-left vertex
             0.5f, -0.5f, 0.0f, //Bottom-right vertex
@@ -21,12 +16,13 @@ namespace Volumetric {
 
         Shader shader;
 
-        protected override void OnUpdateFrame(FrameEventArgs args) {
-            base.OnUpdateFrame(args);
+        public Game(int width, int height, string title) : 
+            base(GameWindowSettings.Default, new NativeWindowSettings() { 
+                ClientSize = (width, height), Title = title 
+            }) {
 
-            if (KeyboardState.IsKeyDown(Keys.Escape)) {
-                Close();
-            }
+            // getting shaders
+            shader = new Shader("shader.vert", "shader.frag");
         }
 
         protected override void OnLoad() {
@@ -38,9 +34,6 @@ namespace Volumetric {
             VertexArrayObject = GL.GenVertexArray();
             GL.BindVertexArray(VertexArrayObject);
 
-            // getting shaders
-            shader = new Shader("shader.vert", "shader.frag");
-
             // buffers and bindings
             VertexBufferObject = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
@@ -50,6 +43,14 @@ namespace Volumetric {
             GL.EnableVertexAttribArray(0);
 
             shader.Use();
+        }
+
+        protected override void OnUpdateFrame(FrameEventArgs args) {
+            base.OnUpdateFrame(args);
+
+            if (KeyboardState.IsKeyDown(Keys.Escape)) {
+                Close();
+            }
         }
 
         protected override void OnRenderFrame(FrameEventArgs e) {
