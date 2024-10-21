@@ -59,6 +59,11 @@ namespace Volumetric {
             GL.DeleteShader(VertexShader);
         }
 
+        // attribName is a name in the vertex shader properties
+        public int GetAttribLocation(string attribName) {
+            return GL.GetAttribLocation(Handle, attribName);
+        }
+
         public void Use() {
             GL.UseProgram(Handle);
         }
