@@ -21,6 +21,8 @@ namespace Volumetric {
         int ElementBufferObject;
         int VertexArrayObject;
 
+        float aspect;
+
         Shader shader;
 
         public Game(int width, int height, string title) : 
@@ -70,6 +72,11 @@ namespace Volumetric {
             GL.Clear(ClearBufferMask.ColorBufferBit);
 
             shader.Use();
+
+            int aspectLocation = GL.GetUniformLocation(shader.Handle, "aspect");
+            Console.WriteLine(aspectLocation);
+            GL.Uniform1(aspectLocation, aspect);
+
             GL.BindVertexArray(VertexArrayObject);
             GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
 
@@ -80,6 +87,10 @@ namespace Volumetric {
             base.OnFramebufferResize(e);
 
             GL.Viewport(0, 0, e.Width, e.Height);
+
+            aspect = (float)e.Width / (float)e.Height;
+
+            Console.WriteLine($"{e.Width}, {e.Height}, {aspect}");
         }
 
         protected override void OnUnload() {

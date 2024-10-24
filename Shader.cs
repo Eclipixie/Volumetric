@@ -2,7 +2,7 @@ using OpenTK.Graphics.OpenGL4;
 
 namespace Volumetric {
     public class Shader : IDisposable {
-        int Handle;
+        public int Handle;
 
         private bool disposedValue = false;
 
