@@ -25,9 +25,9 @@ namespace Volumetric {
 
         Shader shader;
 
-        public Game(int width, int height, string title) : 
-            base(GameWindowSettings.Default, new NativeWindowSettings() { 
-                ClientSize = (width, height), Title = title 
+        public Game(int width, int height, string title, GameWindowSettings gSettings) : 
+            base(gSettings, new NativeWindowSettings() { 
+                ClientSize = (width, height), Title = title
             }) {
 
             // getting shaders
@@ -74,11 +74,12 @@ namespace Volumetric {
             shader.Use();
 
             int aspectLocation = GL.GetUniformLocation(shader.Handle, "aspect");
-            Console.WriteLine(aspectLocation);
             GL.Uniform1(aspectLocation, aspect);
 
             GL.BindVertexArray(VertexArrayObject);
             GL.DrawElements(PrimitiveType.Triangles, indices.Length, DrawElementsType.UnsignedInt, 0);
+
+            Console.WriteLine(1 / e.Time);
 
             SwapBuffers();
         }
@@ -89,8 +90,6 @@ namespace Volumetric {
             GL.Viewport(0, 0, e.Width, e.Height);
 
             aspect = (float)e.Width / (float)e.Height;
-
-            Console.WriteLine($"{e.Width}, {e.Height}, {aspect}");
         }
 
         protected override void OnUnload() {
