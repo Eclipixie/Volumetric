@@ -9,24 +9,72 @@ float maxDist = 256.;
 int maxIter = 256;
 float epsilon = 0.01;
 
-// #region SDFs
+// #region Inigo's SDFs (https://iquilezles.org/articles/distfunctions/)
+// 
 float sdf_sphere(vec3 p, float r) {
     return sqrt(pow(p.x,2) + pow(p.y,2) + pow(p.z,2)) - r;
 }
+
+float sdBox( vec3 p, vec3 b ) {
+  vec3 q = abs(p) - b;
+  return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
+}
+
+float sdPlane( vec3 p, vec3 n, float h ) {
+  // n must be normalized
+  return dot(p,n) + h;
+}
 // #endregion
 
-vec4 gmt_map(vec3 v) {
-    return vec4(1, 1, 1, sdf_sphere(vec3(0,0,5) - v, 2));
+// #region Operations
+// todo: get an exact fucking union operation
+
+/// unionise a | b
+vec4 op_naive_union(vec4 a, vec4 b) {
+    // a || b
+    return (a.w < b.w ? a : b);
 }
 
-vec3 gmt_normal( in vec3 p ) {
+/// intersection a & b
+vec4 op_naive_intersection(vec4 a, vec4 b) {
+    // -(-a || -b)
+    // = a && b
+    a.w *= -1;
+    b.w *= -1;
+    vec4 u = op_naive_union(a, b);
+    return vec4(u.xyz, -u.w);
+}
+
+/// subtract b from a
+vec4 op_naive_subtraction(vec4 a, float b) {
+    // a && -b
+    // yes, b will have negative space
+    // yes, subtractions without the possibility of colour variation are 
+    //  cringe as shit, so im keeping it like this & u cant stop me
+    return op_naive_intersection(a, b * vec4(1, 1, 1, -1));
+}
+// #endregion
+
+// #region Geometry
+vec4 gmt_map(vec3 v) {
+    vec4 sphere = vec4(1, 1, 1, 
+        sdf_sphere(vec3(0,0,5) - v, 2));
+
+    return sphere;
+}
+
+vec3 gmt_normal( in vec3 p ) // for function f(p)
+{
     const float h = 0.0001; // replace by an appropriate value
     const vec2 k = vec2(1,-1);
-    return normalize( k.xyy*gmt_map( p + k.xyy*h ).w + 
-                      k.yyx*gmt_map( p + k.yyx*h ).w + 
-                      k.yxy*gmt_map( p + k.yxy*h ).w + 
-                      k.xxx*gmt_map( p + k.xxx*h ).w );
+    return normalize(
+        k.xyy*gmt_map( p + k.xyy*h ).w + 
+        k.yyx*gmt_map( p + k.yyx*h ).w + 
+        k.yxy*gmt_map( p + k.yxy*h ).w + 
+        k.xxx*gmt_map( p + k.xxx*h ).w
+    );
 }
+// #endregion
 
 // #region Lighting
 // shadows
