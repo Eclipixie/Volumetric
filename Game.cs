@@ -39,7 +39,7 @@ namespace Volumetric {
         protected override void OnLoad() {
             base.OnLoad();
 
-            GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+            GL.ClearColor(1f, 0f, 1f, 1f);
 
             // create VAO
             VertexArrayObject = GL.GenVertexArray();
