@@ -32,6 +32,8 @@ namespace Volumetric {
 
             // getting shaders
             shader = new Shader("shader.vert", "shader.frag");
+
+            aspect = (float)width / (float)height;
         }
 
         protected override void OnLoad() {
