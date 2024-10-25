@@ -15,14 +15,15 @@ float sdf_sphere(vec3 p, float r) {
     return sqrt(pow(p.x,2) + pow(p.y,2) + pow(p.z,2)) - r;
 }
 
-float sdBox( vec3 p, vec3 b ) {
+float sdf_Box( vec3 p, vec3 b ) {
   vec3 q = abs(p) - b;
   return length(max(q,0.0)) + min(max(q.x,max(q.y,q.z)),0.0);
 }
 
-float sdPlane( vec3 p, vec3 n, float h ) {
+float sdf_Plane( vec3 p, vec3 n, float h ) {
   // n must be normalized
-  return dot(p,n) + h;
+  // n is negated so that it represents the actual normal (without it's the negative normal)
+  return dot(p,normalize(-n)) + h;
 }
 // #endregion
 
@@ -32,7 +33,7 @@ float sdPlane( vec3 p, vec3 n, float h ) {
 /// unionise a | b
 vec4 op_naive_union(vec4 a, vec4 b) {
     // a || b
-    return (a.w < b.w ? a : b);
+    return (a.w <= b.w ? a : b);
 }
 
 /// intersection a & b
@@ -46,7 +47,7 @@ vec4 op_naive_intersection(vec4 a, vec4 b) {
 }
 
 /// subtract b from a
-vec4 op_naive_subtraction(vec4 a, float b) {
+vec4 op_naive_subtraction(vec4 a, vec4 b) {
     // a && -b
     // yes, b will have negative space
     // yes, subtractions without the possibility of colour variation are 
@@ -57,10 +58,20 @@ vec4 op_naive_subtraction(vec4 a, float b) {
 
 // #region Geometry
 vec4 gmt_map(vec3 v) {
-    vec4 sphere = vec4(1, 1, 1, 
+    vec4 sphere = vec4(1, 0, 0, 
         sdf_sphere(vec3(0,0,5) - v, 2));
 
-    return sphere;
+    vec4 sphereCavity = vec4(.5, 0, 0,
+        sdf_sphere(vec3(0,0,5) - v, 3));
+
+    vec4 planeFloor = vec4(.8, .8, .8,
+        sdf_Plane(vec3(0,0,0) - v, vec3(0,1,0), 1));
+
+    vec4 map = planeFloor;
+    map = op_naive_subtraction(map, sphereCavity);
+    map = op_naive_union(map, sphere);
+
+    return map;
 }
 
 vec3 gmt_normal( in vec3 p ) // for function f(p)
@@ -136,12 +147,14 @@ void main() {
                 dif *
                 (0.04 + 0.96*pow( clamp(1.0+dot(hal,dir),0.0,1.0), 5.0 ));
 
-    gmt_col =  vec3(4.0 *  dif * (gmt_col.xyz));
+    // used to be multiplied by 4
+    // weird shading on curved surfaces
+    gmt_col =  vec3(1.2 * dif * gmt_col);
     gmt_col += vec3(12.0 * spe * (gmt_col.xyz));
     
     // ambient light
     float occ = fx_ao( r, nor );
-    float amb = clamp( 0.5+0.5*nor.y, 0.0, 1.0 );
+    float amb = 1;//clamp( 0.5+0.5*nor.y, 0.0, 1.0 );
     gmt_col += vec3(amb*occ*vec3(0.0,0.08,0.1));
 
     gmt_col=mix(gmt_col, sky, min(travel/maxDist, 1));
